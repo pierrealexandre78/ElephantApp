@@ -1,0 +1,46 @@
+# Services
+services:
+  api:
+    build:
+      context: api
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: curl -f http://localhost:8080/healthcheck || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - db
+    networks:
+      - backend
+    # Environment variables
+    environment:
+      OTHERNAME: Bob
+    env_file: .env
+    volumes:
+      - ./api:/elephant-app/api
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: pg_isready -U user -d db
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - backend
+
+# Networks
+networks:
+  backend:
+    driver: bridge
